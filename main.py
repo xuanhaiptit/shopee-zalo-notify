@@ -48,6 +48,18 @@ def save_token(token_info):
 
 # ========== SHOPEE API ==========
 
+def send_slack_message(message, webhook_url):
+    payload = {
+        "text": message
+    }
+    try:
+        resp = requests.post(webhook_url, json=payload)
+        print("Đã gửi Slack:", resp.status_code, resp.text)
+    except Exception as e:
+        print("Lỗi gửi Slack:", e)
+
+SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"  # dán webhook của bạn vào đây
+
 HOST = "https://partner.shopeemobile.com"      # ✔ đúng domain
 
 def refresh_access_token(partner_id, partner_key, shop_id, refresh_token):
@@ -179,9 +191,11 @@ def main():
         for order in fast_orders:
             print(f"- order_sn: {order.get('order_sn')} | logistics_service_type: {order.get('logistics_service_type')}")
         send_email("ĐƠN HỎA TỐC MỚI", f"Bạn có {len(fast_orders)} đơn hỏa tốc mới\n" + "\n".join([f"- {o['order_sn']}" for o in fast_orders]))
+        send_slack_message("ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
-        send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
+        #send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
+        #send_slack_message("KHÔNG CÓ ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
 
 
 
