@@ -1,0 +1,2 @@
+# Nếu bạn dùng requests để gọi API ngoài thì ghi vào đây, còn không cứ để trống hoặc chỉ ghi:
+requests
