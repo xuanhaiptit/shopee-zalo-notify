@@ -132,8 +132,11 @@ def filter_hoa_toc(order_details):
 
 def main():
     # Load token
-    token_info = load_token()
-    shop_id = token_info["shop_id"]
+    token_info = {}
+    token_info["access_token_expire"] = 1751111372.3587914
+    shop_id = 275960078
+    token_info["refresh_token"] = "756f51444a7947536257526141456142"
+    token_info["access_token"] = "67656c79705770784e55494767506b41"
 
     # Auto refresh access_token nếu sắp hết hạn
     if time.time() > token_info["access_token_expire"] - TOKEN_REFRESH_BEFORE:
