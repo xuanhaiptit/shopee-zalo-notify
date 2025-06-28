@@ -4,6 +4,9 @@ import hmac
 import hashlib
 import json
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # ---- CONFIG ----
 PARTNER_ID = 2011711               # Thay bằng Partner_id của bạn
@@ -14,6 +17,42 @@ ORDER_TIME_RANGE = 24*60*60        # Lấy đơn trong 24h gần nhất
 PAGE_SIZE = 20                     # Số đơn mỗi lần gọi (tối đa 50)
 # ---------------
 
+def send_email(subject, body, to_email, from_email="xuanhaiptit@gmail.com", app_password="jzepikklfowgnhuh"):
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.login(from_email, app_password)
+    text = msg.as_string()
+    server.sendmail(from_email, to_email, text)
+    server.quit()
+    print("Đã gửi mail thành công tới", to_email)
+    
+def notify_zalo_oa(message, user_id, zalo_oa_access_token):
+    url = "https://openapi.zalo.me/v2.0/oa/message"   # sửa lại v2.0
+    headers = {
+        "access_token": zalo_oa_access_token,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "recipient": {
+            "user_id": user_id
+        },
+        "message": {
+            "text": message
+        }
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    print("Zalo OA response:", response.status_code, response.text)
+    try:
+        return response.json()
+    except Exception as e:
+        return {"error": "not_json", "raw": response.text}
+
+    
 def generate_signature(key, base_string):
     return hmac.new(key.encode('utf-8'), base_string.encode('utf-8'), hashlib.sha256).hexdigest()
 
@@ -120,7 +159,7 @@ def get_order_detail(partner_id, partner_key, shop_id, access_token, order_sn_li
 
 
 def filter_hoa_toc(order_details):
-    print("order_details:", order_details)
+    #print("order_details:", resp.status_code)
     # Kiểm tra logistics_service_type hoặc field khác tùy vào shop của bạn
     fast_orders = []
     for order in order_details:
@@ -134,11 +173,6 @@ def main():
     # Load token
     token_info = load_token()
     shop_id = token_info["shop_id"]
-    #token_info = {}
-    #token_info["access_token_expire"] = 1751111372.3587914
-    #shop_id = 275960078
-    #token_info["refresh_token"] = "756f51444a7947536257526141456142"
-    #token_info["access_token"] = "67656c79705770784e55494767506b41"
 
     # Auto refresh access_token nếu sắp hết hạn
     if time.time() > token_info["access_token_expire"] - TOKEN_REFRESH_BEFORE:
@@ -162,13 +196,26 @@ def main():
     print(f"Có {len(order_sn_list)} đơn mới, kiểm tra chi tiết...")
     order_details = get_order_detail(PARTNER_ID, PARTNER_KEY, shop_id, token_info["access_token"], order_sn_list)
     fast_orders = filter_hoa_toc(order_details)
+    zalo_oa_access_token = "jBeBEe0dP6-ylWazZIPkQBg-0ZU9F1yS-zG50x1B8rM4h31KrZ0qPf7HAqh33orsd-aNG_yF06-_nMeamY5PCgxdJXQJFqSQpE9TCO5-P3dRubusktjH88pcJZxO7s8wi-1l4uyZQ3F-kc0CcKnc9EYIJtgfJLvMxePKPjr1OcAzX0r2z6mXJvgPIswc0KezrDbm7OOtR33tqtm_dWPL0QFUEpJ-AWu0dEC21VSNSIYtqm8U-ZCLIuYc16wwRpixXwqnAjKs2XYupHKmqnaH7xNV93x50oisWzKc9kaWCGwlo5WnqpHr5fBiQ1EdEGGzcwDt0VSwJmcwsLqgsqrRF-_CIX_V3daFWFLqCS4GNJEEwc4M_NvmGgw6ObtnVKHZXgWjFUrj0tQwbsyboMi86OAI8W_DToK2TMa5h5vcXJXcQm"
+    user_id = "1391639123705599205"
 
+    to_email = "xuanhaiptit@gmail.com"
     if fast_orders:
         print(f"==> Có {len(fast_orders)} đơn hỏa tốc mới:")
         for order in fast_orders:
             print(f"- order_sn: {order.get('order_sn')} | logistics_service_type: {order.get('logistics_service_type')}")
+        msg = "Có đơn hỏa tốc nhé"
+        #notify_zalo_oa(msg, user_id, zalo_oa_access_token)
+        subject = "ĐƠN HỎA TỐC MỚI"
+        body = "Bạn có đơn hỏa tốc mới"
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
-
+        msg = "Không có đơn hỏa tốc nào mới trong 24h."
+        #notify_zalo_oa(msg, user_id, zalo_oa_access_token)
+        subject = "KHÔNG ĐƠN HỎA TỐC MỚI"
+        body = "Bạn KHÔNG có đơn hỏa tốc mới"
+        
+    send_email(subject, body, to_email)
+    
 if __name__ == "__main__":
     main()
