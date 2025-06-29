@@ -216,8 +216,8 @@ def main():
         send_slack_message("ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
-        send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
-        send_slack_message("KHÔNG CÓ ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
+        #send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
+        #send_slack_message("KHÔNG CÓ ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
 
 
 
