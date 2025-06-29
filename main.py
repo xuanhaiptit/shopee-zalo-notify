@@ -6,6 +6,7 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import pprint
 
 # ---- CONFIG ----
 PARTNER_ID = 2011711
@@ -17,22 +18,32 @@ PAGE_SIZE = 20
 
 FROM_EMAIL = "xuanhaiptit@gmail.com"
 APP_PASSWORD = "jzepikklfowgnhuh"
-TO_EMAIL = "xuanhaiptit@gmail.com"
+TO_EMAILS = ["xuanhaiptit@gmail.com",
+             "khoinx1994@gmail.com"]
 
 # ========== UTILS ==========
 
-def send_email(subject, body, to_email=TO_EMAIL, from_email=FROM_EMAIL, app_password=APP_PASSWORD):
-    """Gửi email cảnh báo."""
-    msg = MIMEMultipart()
-    msg['From'] = from_email
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
+def send_email(subject, body, to_emails=TO_EMAILS,
+               from_email=FROM_EMAIL, app_password=APP_PASSWORD):
+    """Gửi email cảnh báo cho nhiều người."""
+    # Nếu dùng list, hiển thị To: với các địa chỉ cách nhau bằng dấu phẩy
+    if isinstance(to_emails, (list, tuple)):
+        to_header = ", ".join(to_emails)
+    else:   # vẫn cho phép truyền chuỗi đơn
+        to_emails = [to_emails]
+        to_header = to_emails[0]
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+    msg = MIMEMultipart()
+    msg["From"] = from_email
+    msg["To"] = to_header
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(from_email, app_password)
-        server.sendmail(from_email, to_email, msg.as_string())
-    print("Đã gửi mail thành công tới", to_email)
+        server.sendmail(from_email, to_emails, msg.as_string())
+
+    print("Đã gửi mail thành công tới:", to_header)
 
 def generate_signature(key, base_string):
     """Sinh chữ ký Shopee."""
@@ -136,6 +147,7 @@ def get_order_detail(partner_id, partner_key, shop_id, access_token, order_sn_li
         "access_token": access_token,
         "shop_id": shop_id,
         "order_sn_list": order_sn_list_str,
+        "response_optional_fields": "package_list,fulfillment_list"
     }
     resp = requests.get(url, params=params)
     try:
@@ -146,13 +158,22 @@ def get_order_detail(partner_id, partner_key, shop_id, access_token, order_sn_li
     return data.get("response", {}).get("order_list", [])
 
 def filter_hoa_toc(order_details):
-    """Lọc đơn hỏa tốc dựa vào trường logistics_service_type."""
+    """
+    Trả về list order hỏa tốc dựa trên shipping_carrier bên trong package_list.
+    """
+    fast_keywords = {"SPX INSTANT", "GRABEXPRESS", "AHAMOVE"}
     fast_orders = []
+
     for order in order_details:
-        logistics_type = order.get("logistics_service_type", "").upper()
-        if "FAST" in logistics_type or "HỎA TỐC" in logistics_type:
-            fast_orders.append(order)
+        packages = order.get("package_list", []) or order.get("fulfillment_list", [])
+        for pkg in packages:
+            carrier = (pkg.get("shipping_carrier") or "").upper()
+            if any(k in carrier for k in fast_keywords):
+                fast_orders.append(order)
+                break   # tìm thấy 1 package hỏa tốc là đủ
+
     return fast_orders
+
 
 # ========== MAIN LOGIC ==========
 
@@ -184,6 +205,7 @@ def main():
     print(f"Có {len(order_sn_list)} đơn mới, kiểm tra chi tiết...")
 
     order_details = get_order_detail(PARTNER_ID, PARTNER_KEY, shop_id, token_info["access_token"], order_sn_list)
+    pprint.pprint(order_details)
     fast_orders = filter_hoa_toc(order_details)
 
     if fast_orders:
@@ -194,8 +216,8 @@ def main():
         send_slack_message("ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
-        #send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
-        #send_slack_message("KHÔNG CÓ ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
+        send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
+        send_slack_message("KHÔNG CÓ ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
 
 
 
