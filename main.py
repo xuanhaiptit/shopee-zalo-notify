@@ -205,7 +205,7 @@ def main():
     print(f"Có {len(order_sn_list)} đơn mới, kiểm tra chi tiết...")
 
     order_details = get_order_detail(PARTNER_ID, PARTNER_KEY, shop_id, token_info["access_token"], order_sn_list)
-    pprint.pprint(order_details)
+    #pprint.pprint(order_details)
     fast_orders = filter_hoa_toc(order_details)
 
     if fast_orders:
