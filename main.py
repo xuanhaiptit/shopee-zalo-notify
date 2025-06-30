@@ -1,5 +1,4 @@
 import requests
-import time
 import hmac
 import hashlib
 import json
@@ -7,6 +6,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import pprint
+from datetime import datetime, time as dt_time
+import time
+from zoneinfo import ZoneInfo   # có sẵn từ Python 3.9
 
 # ---- CONFIG ----
 PARTNER_ID = 2011711
@@ -14,14 +16,21 @@ PARTNER_KEY = "shpk6370504e5868504e59736d774474545870505952744b635a566c7471586c"
 TOKEN_FILE = "access_token_expire.json"
 TOKEN_REFRESH_BEFORE = 600        # 10 phút trước khi hết hạn thì refresh
 ORDER_TIME_RANGE = 24 * 60 * 60   # 24h gần nhất
-PAGE_SIZE = 20
+PAGE_SIZE = 100
 
 FROM_EMAIL = "xuanhaiptit@gmail.com"
 APP_PASSWORD = "jzepikklfowgnhuh"
 TO_EMAILS = ["xuanhaiptit@gmail.com",
              "nguyenthigiang3007@gmail.com"]
 
+TZ = ZoneInfo("Asia/Bangkok")
+QUIET_START = dt_time(20, 0)   # 20:00
+QUIET_END   = dt_time(6, 0)    # 06:00
 # ========== UTILS ==========
+def in_quiet_hours(now=None):
+    if now is None:
+        now = datetime.now(TZ).time()
+    return now >= QUIET_START or now < QUIET_END
 
 def send_email(subject, body, to_emails=TO_EMAILS,
                from_email=FROM_EMAIL, app_password=APP_PASSWORD):
@@ -205,6 +214,7 @@ def main():
     print(f"Có {len(order_sn_list)} đơn mới, kiểm tra chi tiết...")
 
     order_details = get_order_detail(PARTNER_ID, PARTNER_KEY, shop_id, token_info["access_token"], order_sn_list)
+    print(order_details)
     #pprint.pprint(order_details)
     fast_orders = filter_hoa_toc(order_details)
 
@@ -212,7 +222,11 @@ def main():
         print(f"==> Có {len(fast_orders)} đơn hỏa tốc mới:")
         for order in fast_orders:
             print(f"- order_sn: {order.get('order_sn')} | logistics_service_type: {order.get('logistics_service_type')}")
-        send_email("ĐƠN HỎA TỐC MỚI", f"Bạn có {len(fast_orders)} đơn hỏa tốc mới\n" + "\n".join([f"- {o['order_sn']}" for o in fast_orders]))
+            if in_quiet_hours():
+                print("Đang trong khung giờ yên lặng (20h-06h) – không gửi email.")
+            else:
+                send_email("ĐƠN HỎA TỐC MỚI", f"Bạn có {len(fast_orders)} đơn hỏa tốc mới\n" + "\n".join([f"- {o['order_sn']}" for o in fast_orders]))
+        
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
 
