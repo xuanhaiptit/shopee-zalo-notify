@@ -198,7 +198,7 @@ def main():
     orders = get_order_list(PARTNER_ID, PARTNER_KEY, shop_id, token_info["access_token"])
     if not orders:
         print("Không có đơn nào mới trong 24h.")
-        send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
+        #send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
         return
 
     order_sn_list = [order["order_sn"] for order in orders]
@@ -213,11 +213,8 @@ def main():
         for order in fast_orders:
             print(f"- order_sn: {order.get('order_sn')} | logistics_service_type: {order.get('logistics_service_type')}")
         send_email("ĐƠN HỎA TỐC MỚI", f"Bạn có {len(fast_orders)} đơn hỏa tốc mới\n" + "\n".join([f"- {o['order_sn']}" for o in fast_orders]))
-        send_slack_message("ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
-        #send_email("KHÔNG ĐƠN HỎA TỐC MỚI", "Bạn KHÔNG có đơn hỏa tốc mới")
-        #send_slack_message("KHÔNG CÓ ĐƠN HỎA TỐC MỚI", SLACK_WEBHOOK_URL)
 
 
 
