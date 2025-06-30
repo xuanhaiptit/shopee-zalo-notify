@@ -19,7 +19,7 @@ PAGE_SIZE = 20
 FROM_EMAIL = "xuanhaiptit@gmail.com"
 APP_PASSWORD = "jzepikklfowgnhuh"
 TO_EMAILS = ["xuanhaiptit@gmail.com",
-             "khoinx1994@gmail.com"]
+             "nguyenthigiang3007@gmail.com"]
 
 # ========== UTILS ==========
 
