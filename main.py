@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo   # có sẵn từ Python 3.9
 
 # ---- CONFIG ----
 PARTNER_ID = 2011711
-PARTNER_KEY = "shpk6370504e5868504e59736d774474545870505952744b635a566c7471586c"
+PARTNER_KEY = "shpk74414273766e577065514e78766c704b64756a75456a624c4f7257756d54"
 TOKEN_FILE = "access_token_expire.json"
 TOKEN_REFRESH_BEFORE = 600        # 10 phút trước khi hết hạn thì refresh
 ORDER_TIME_RANGE = 24 * 60 * 60   # 24h gần nhất
@@ -25,7 +25,7 @@ TO_EMAILS = ["xuanhaiptit@gmail.com",
 
 TZ = ZoneInfo("Asia/Bangkok")
 QUIET_START = dt_time(20, 0)   # 20:00
-QUIET_END   = dt_time(6, 0)    # 06:00
+QUIET_END   = dt_time(7, 0)    # 06:00
 # ========== UTILS ==========
 def in_quiet_hours(now=None):
     if now is None:
