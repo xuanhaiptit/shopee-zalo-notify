@@ -34,6 +34,8 @@ def in_quiet_hours(now=None):
 
 def send_email(subject, body, to_emails=TO_EMAILS,
                from_email=FROM_EMAIL, app_password=APP_PASSWORD):
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    subject_with_time = f"{subject} - {now_str}"
     """Gửi email cảnh báo cho nhiều người."""
     # Nếu dùng list, hiển thị To: với các địa chỉ cách nhau bằng dấu phẩy
     if isinstance(to_emails, (list, tuple)):
