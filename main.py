@@ -225,7 +225,7 @@ def main():
             if in_quiet_hours():
                 print("Đang trong khung giờ yên lặng (20h-06h) – không gửi email.")
             else:
-                send_email("ĐƠN HỎA TỐC MỚI", f"Bạn có {len(fast_orders)} đơn hỏa tốc mới\n" + "\n".join([f"- {o['order_sn']}" for o in fast_orders]))
+                send_email("CÓ ĐƠN HỎA TỐC NHÉ BẠN", f"Bạn có {len(fast_orders)} đơn hỏa tốc mới\n" + "\n".join([f"- {o['order_sn']}" for o in fast_orders]))
         
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
