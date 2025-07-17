@@ -21,11 +21,11 @@ PAGE_SIZE = 100
 FROM_EMAIL = "xuanhaiptit@gmail.com"
 APP_PASSWORD = "jzepikklfowgnhuh"
 TO_EMAILS = ["xuanhaiptit@gmail.com",
-             "nguyenthigiang3007@gmail.com"]
+             "nguyenthigiang3007@gmail.com", "xuanhaiptit@icloud.com", "nguyenthigiang3007@icloud.com"]
 
 TZ = ZoneInfo("Asia/Bangkok")
 QUIET_START = dt_time(20, 0)   # 20:00
-QUIET_END   = dt_time(7, 0)    # 06:00
+QUIET_END   = dt_time(7, 0)    # 07:00
 # ========== UTILS ==========
 def in_quiet_hours(now=None):
     if now is None:
@@ -47,7 +47,7 @@ def send_email(subject, body, to_emails=TO_EMAILS,
     msg = MIMEMultipart()
     msg["From"] = from_email
     msg["To"] = to_header
-    msg["Subject"] = subject
+    msg["Subject"] = subject_with_time
     msg.attach(MIMEText(body, "plain"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
@@ -231,7 +231,7 @@ def main():
         
     else:
         print("Không có đơn hỏa tốc nào mới trong 24h.")
-
+        #send_email("CÓ ĐƠN HỎA TỐC NHÉ BẠN","test")
 
 
 if __name__ == "__main__":
